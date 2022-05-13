@@ -6,21 +6,22 @@ BUILD_ID_NONE :=
 SHELL := /bin/bash
 
 DOCKER_IMAGE := my-gcc:11
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 define build_image
-@docker images $(DOCKER_IMAGE) \
-	| grep . > /dev/null \
-	|| docker build -f Dockerfile.gcc -t $(DOCKER_IMAGE) .
+	@docker images -q $(DOCKER_IMAGE) \
+		| grep . > /dev/null \
+		|| docker build -f Dockerfile.gcc -t $(DOCKER_IMAGE) .
 endef
 
 define in_container
 $(build_image)
-docker run --rm -v $$(PWD):/app $(DOCKER_IMAGE)
+	docker run --rm -v $(ROOT_DIR):/app $(DOCKER_IMAGE)
 endef
 
 define in_container_with_tty
 $(build_image)
-docker run --rm -it -v $$(PWD):/app $(DOCKER_IMAGE) bash -c
+	docker run --rm -it -v $(ROOT_DIR):/app $(DOCKER_IMAGE) bash -c
 endef
 
 all:	jonesforth
